@@ -394,52 +394,64 @@ void Bond::setBrokenCallback(std::function<void(void)> on_broken)
 
 bool Bond::waitUntilFormed(rclcpp::Duration timeout)
 {
-  //  std::unique_lock<std::mutex> lock(mutex_);
   rclcpp::Clock steady_clock(RCL_STEADY_TIME);
   rclcpp::Time deadline(steady_clock.now() + timeout);
   rclcpp::Rate r(100);
 
-  while (sm_.getState().getId() == SM::WaitingForSister.getId()) {
+  bool formed = false;
+  while (!formed) {
     if (!rclcpp::ok()) {
       break;
     }
     rclcpp::Duration wait_time = rclcpp::Duration(100ms);
     if (timeout >= rclcpp::Duration(0.0s)) {
-      rclcpp::Clock steady_clock(RCL_STEADY_TIME);
       wait_time = std::min(wait_time, deadline - steady_clock.now());
     }
     if (wait_time <= rclcpp::Duration(0.0s)) {
       break;  //  The deadline has expired
     }
     r.sleep();
+
+    {
+      std::unique_lock<std::mutex> lock(mutex_);
+      if (sm_.getState().getId() != SM::WaitingForSister.getId()) {
+        formed = true;
+      }
+    }
   }
 
-  return sm_.getState().getId() != SM::WaitingForSister.getId();
+  return formed;
 }
 
 bool Bond::waitUntilBroken(rclcpp::Duration timeout)
 {
-  //  std::unique_lock<std::mutex> lock(mutex_);
   rclcpp::Clock steady_clock(RCL_STEADY_TIME);
   rclcpp::Time deadline(steady_clock.now() + timeout);
   rclcpp::Rate r(100);
 
-  while (sm_.getState().getId() != SM::Dead.getId()) {
+  bool broken = false;
+  while (!broken) {
     if (!rclcpp::ok()) {
       break;
     }
     rclcpp::Duration wait_time = rclcpp::Duration(100ms);
     if (timeout >= rclcpp::Duration(0.0s)) {
-      rclcpp::Clock steady_clock(RCL_STEADY_TIME);
       wait_time = std::min(wait_time, deadline - steady_clock.now());
     }
     if (wait_time <= rclcpp::Duration(0.0s)) {
       break;  //  The deadline has expired
     }
     r.sleep();
+
+    {
+      std::unique_lock<std::mutex> lock(mutex_);
+      if (sm_.getState().getId() != SM::Dead.getId()) {
+        broken = true;
+      }
+    }
   }
 
-  return sm_.getState().getId() == SM::Dead.getId();
+  return broken;
 }
 
 bool Bond::isBroken()
