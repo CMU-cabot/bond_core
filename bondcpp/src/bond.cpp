@@ -509,6 +509,10 @@ void Bond::onDisconnectTimeout()
 
 void Bond::bondStatusCB(const bond::msg::Status & msg)
 {
+  RCLCPP_DEBUG(
+    node_logging_->get_logger(), "bondStatusCB called for bond %s (%s) started=%s msg.id=%s, msg.instance_id=%s, msg.active=%s",
+    id_.c_str(), instance_id_.c_str(), started_ ? "true" : "false",
+    msg.id.c_str(), msg.instance_id.c_str(), msg.active ? "true" : "false");
   if (!started_) {
     return;
   }
@@ -560,6 +564,8 @@ void Bond::publishStatus(bool active)
   msg.heartbeat_timeout = static_cast<float>(heartbeat_timeout_.seconds());
   msg.heartbeat_period = static_cast<float>(heartbeat_period_.seconds());
   pub_->publish(msg);
+  RCLCPP_DEBUG(node_logging_->get_logger(), "publishStatus(%s) called for bond %s (%s)",
+    active ? "active" : "inactive", id_.c_str(), instance_id_.c_str());
 }
 
 void Bond::flushPendingCallbacks()
