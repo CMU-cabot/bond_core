@@ -45,6 +45,7 @@
 #include <vector>
 
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/logger.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 using namespace std::chrono_literals;
@@ -163,7 +164,7 @@ Bond::~Bond()
   breakBond();
   if (rclcpp::ok() && !waitUntilBroken(rclcpp::Duration(100ms))) {
     RCLCPP_DEBUG(
-      node_logging_->get_logger("bondcpp"), "Bond failed to break on destruction %s (%s)",
+      node_logging_->get_logger(), "Bond failed to break on destruction %s (%s)",
       id_.c_str(), instance_id_.c_str());
   }
 
@@ -186,7 +187,7 @@ void Bond::setupConnections()
 void Bond::setConnectTimeout(double dur)
 {
   if (started_) {
-    RCLCPP_ERROR(node_logging_->get_logger("bondcpp"), "Cannot set timeouts after calling start()");
+    RCLCPP_ERROR(node_logging_->get_logger(), "Cannot set timeouts after calling start()");
     return;
   }
   connect_timeout_ = rclcpp::Duration::from_seconds(dur);
@@ -223,7 +224,7 @@ void Bond::connectTimerCancel()
 void Bond::setDisconnectTimeout(double dur)
 {
   if (started_) {
-    RCLCPP_ERROR(node_logging_->get_logger("bondcpp"), "Cannot set timeouts after calling start()");
+    RCLCPP_ERROR(node_logging_->get_logger(), "Cannot set timeouts after calling start()");
     return;
   }
   disconnect_timeout_ = rclcpp::Duration::from_seconds(dur);
@@ -260,7 +261,7 @@ void Bond::disconnectTimerCancel()
 void Bond::setHeartbeatTimeout(double dur)
 {
   if (started_) {
-    RCLCPP_ERROR(node_logging_->get_logger("bondcpp"), "Cannot set timeouts after calling start()");
+    RCLCPP_ERROR(node_logging_->get_logger(), "Cannot set timeouts after calling start()");
     return;
   }
 
@@ -296,7 +297,7 @@ void Bond::heartbeatTimerCancel()
 void Bond::setHeartbeatPeriod(double dur)
 {
   if (started_) {
-    RCLCPP_ERROR(node_logging_->get_logger("bondcpp"), "Cannot set timeouts after calling start()");
+    RCLCPP_ERROR(node_logging_->get_logger(), "Cannot set timeouts after calling start()");
     return;
   }
 
@@ -330,7 +331,7 @@ void Bond::publishingTimerCancel()
 void Bond::setDeadPublishPeriod(double dur)
 {
   if (started_) {
-    RCLCPP_ERROR(node_logging_->get_logger("bondcpp"), "Cannot set timeouts after calling start()");
+    RCLCPP_ERROR(node_logging_->get_logger(), "Cannot set timeouts after calling start()");
     return;
   }
 
@@ -510,7 +511,7 @@ void Bond::onDisconnectTimeout()
 void Bond::bondStatusCB(const bond::msg::Status & msg)
 {
   RCLCPP_DEBUG(
-    node_logging_->get_logger("bondcpp"), "bondStatusCB called for bond %s (%s) started=%s msg.id=%s, msg.instance_id=%s, msg.active=%s",
+    node_logging_->get_logger(), "bondStatusCB called for bond %s (%s) started=%s msg.id=%s, msg.instance_id=%s, msg.active=%s",
     id_.c_str(), instance_id_.c_str(), started_ ? "true" : "false",
     msg.id.c_str(), msg.instance_id.c_str(), msg.active ? "true" : "false");
   if (!started_) {
@@ -564,7 +565,7 @@ void Bond::publishStatus(bool active)
   msg.heartbeat_timeout = static_cast<float>(heartbeat_timeout_.seconds());
   msg.heartbeat_period = static_cast<float>(heartbeat_period_.seconds());
   pub_->publish(msg);
-  RCLCPP_DEBUG(node_logging_->get_logger("bondcpp"), "publishStatus(%s) called for bond %s (%s)",
+  RCLCPP_DEBUG(node_logging_->get_logger(), "publishStatus(%s) called for bond %s (%s)",
     active ? "active" : "inactive", id_.c_str(), instance_id_.c_str());
 }
 
